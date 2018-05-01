@@ -12,7 +12,7 @@ git-tfs-authors is a small utility to create an authors file, which you can use 
 	  ex : git tfs clone http://my-tfs-server:8080/tfs authors.txt
     
 ## Dependencies
-You'll need Visual Studio 2017 to build, because of the references to Microsoft.TeamFoundation.Client.dll
+You'll need Visual Studio 2017 to build, because of the reference to Microsoft.TeamFoundation.Client.dll
     
 ## See also
 * git-tfs-clone: https://github.com/git-tfs/git-tfs/blob/master/doc/commands/clone.md
