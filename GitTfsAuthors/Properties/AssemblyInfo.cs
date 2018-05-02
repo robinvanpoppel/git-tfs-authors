@@ -1,11 +1,10 @@
 ﻿using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 [assembly: AssemblyTitle("GitTfsAuthors")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("Konpyuta")]
 [assembly: AssemblyProduct("GitTfsAuthors")]
 [assembly: AssemblyCopyright("Copyright © Robin van Poppel 2018")]
 [assembly: AssemblyTrademark("")]
