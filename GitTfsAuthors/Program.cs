@@ -1,52 +1,77 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using Microsoft.TeamFoundation.Client;
-using Microsoft.TeamFoundation.Server;
+using NDesk.Options;
 
 namespace Konpyuta.GitTfsAuthors
 {
     class Program
     {
+        private static readonly TfsIdentityProvider TfsIdentityProvider = new TfsIdentityProvider();
+
         static int Main(string[] args)
         {
-            var tfsServerUri = args.FirstOrDefault();
-            Uri uri;
-            if (!Uri.TryCreate(tfsServerUri, UriKind.Absolute, out uri))
+            var executable = AppDomain.CurrentDomain.FriendlyName;
+
+            try
             {
-                Console.WriteLine("Please specify a tfs server uri (e.g. http://tfs:8080/tfs)");
-                return -1;
+                var options = new Options().Parse(args);
+                if (options.ShowHelp)
+                {
+                    Console.WriteLine($"{executable}: ");
+                    options.WriteOptionDescriptions(Console.Out);
+                    Console.WriteLine("Examples");
+                    Console.WriteLine($"{executable} --tfs-server-uri http://tfs:8080/tfs");
+                    Console.WriteLine($"{executable} --tfs-server-uri http://tfs:8080/tfs --authors=output.txt");
+                    Console.WriteLine($"{executable} --tfs-server-uri http://tfs:8080/tfs --authors=output.txt --sort");
+
+                    return 0;
+                }
+
+                options.Validate();
+
+                CreateAuthorsFile(options);
+
+                return 0;
             }
-
-            var outFile = args.Skip(1).SingleOrDefault() ?? "authors.txt";
-            
-            CreateAuthorsFile(tfsServerUri, outFile);
-
-            return 0;
+            catch (OptionException e)
+            {
+                Console.Write($"{executable}: ");
+                Console.WriteLine(e.Message);
+                Console.WriteLine($"Try '{executable} --help' for more information.");
+                return -2;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("An exception occured: ");
+                Console.WriteLine(ex.Message);
+                return ex.GetHashCode();
+            }
         }
 
-        private static void CreateAuthorsFile(string tfsServerUri, string outFile)
+        private static void CreateAuthorsFile(Options options)
         {
-            using (var tfs = new TfsTeamProjectCollection(new Uri(tfsServerUri)))
+            var identities = TfsIdentityProvider.GetIdentities(options.TfsServerUri);
+
+            if (!options.KeepEmptyEmail)
             {
-                tfs.EnsureAuthenticated();
+                identities = identities.Where(c => !string.IsNullOrWhiteSpace(c.MailAddress));
+            }
 
-                var gss = tfs.GetService<IGroupSecurityService>();
-                var sids = gss.ReadIdentity(SearchFactor.AccountName, "Project Collection Valid Users",
-                    QueryMembership.Expanded);
-                var identities = gss.ReadIdentities(SearchFactor.Sid, sids.Members, QueryMembership.None);
+            var entries = identities.Select(c => new AuthorEntry(c));
+            if (options.Sort)
+            {
+                entries = entries.OrderBy(c => c.TfsUser);
+            }
 
-                using (var sw = new StreamWriter(outFile) {AutoFlush = true})
+            using (var sw = new StreamWriter(options.AuthorsFile) { AutoFlush = true })
+            {
+                foreach (var user in entries)
                 {
-                    foreach (var user in identities.Where(c => c != null).Where(c => c.Type == IdentityType.WindowsUser))
-                    {
-                        // Wrtie lines in the form of DISSRVTFS03\peter.pan = Peter Pan <peter.pan@disney.com>
-                        var line = $@"{user.Domain}\{user.AccountName} = {user.DisplayName} <{user.MailAddress}>";
-                        sw.WriteLine(line);
-                    }
-
-                    sw.Flush();
+                    sw.WriteLine(user);
                 }
+
+                sw.Flush();
             }
         }
     }
