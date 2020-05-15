@@ -24,7 +24,7 @@ GitTfsAuthors --tfs-server-uri http://tfs:8080/tfs --authors=output.txt --sort
 ```
 
 ## Prerequisites
-* You'll need Visual Studio 2017 to build, because of the reference to Microsoft.TeamFoundation.Client.dll
+* You'll need Visual Studio 2017 or 2019 to build, because of the reference to Microsoft.TeamFoundation.Client.dll
     
 ## See also
 * git-tfs-clone: https://github.com/git-tfs/git-tfs/blob/master/doc/commands/clone.md
