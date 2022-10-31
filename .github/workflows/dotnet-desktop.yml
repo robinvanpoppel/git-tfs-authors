@@ -1,0 +1,43 @@
+name: Build application
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+
+  build:
+
+    runs-on: windows-2019
+
+    env:
+      Solution_Name: GitTfsAuthors.sln
+      Project_Path: GitTfsAuthors/GitTfsAuthors.csproj
+      Configuration: Release
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
+    - name: Setup MSBuild.exe
+      uses: microsoft/setup-msbuild@v1.0.2
+
+    # Restore the application to populate the obj folder with RuntimeIdentifiers
+    - name: Restore the application
+      run: msbuild ${{ env.Solution_Name }} /t:Restore /p:Configuration=${{ env.Configuration }}
+      env:
+        Configuration: Release
+
+    # Create the app package by building and packaging the Windows Application Packaging project
+    - name: Create the app package
+      run: msbuild ${{ env.Project_Path }} /p:Configuration=${{ env.Configuration }}
+
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v3.1.1
+      with: 
+        path: .
