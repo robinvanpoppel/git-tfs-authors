@@ -46,7 +46,7 @@ namespace Konpyuta.GitTfsAuthors
         {
             _optionSet.WriteOptionDescriptions(writer);
         }
-    
+
         /// <summary>
         /// Validates the parsed arguments.
         /// </summary>
